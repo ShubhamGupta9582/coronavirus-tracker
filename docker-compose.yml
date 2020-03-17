@@ -1,0 +1,13 @@
+version: '2.4'
+
+services:
+  virus:
+    build: ../coronavirus-tracker
+    image: virus-tracker
+    container_name: virus
+    tty: true
+    ports:
+      - "9095:9999"
+    mem_limit: 256m
+    mem_reservation: 128m
+    cpus: 0.5
