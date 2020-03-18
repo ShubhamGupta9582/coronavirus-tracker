@@ -9,6 +9,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +20,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -65,5 +70,23 @@ public class CoronavirusDataService {
             }
         }
 
+    }
+
+    public Page<LocationStats> getPaginatedData(Pageable pageable) {
+        int pageSize = pageable.getPageSize();
+        int currentPage = pageable.getPageNumber();
+        int startItem = currentPage * pageSize;
+        List<LocationStats> paginatedStats;
+
+        if (allStats.size() < startItem) {
+            paginatedStats = Collections.emptyList();
+        } else {
+            int toIndex = Math.min(startItem + pageSize, allStats.size());
+            paginatedStats = allStats.subList(startItem, toIndex);
+        }
+
+        Page<LocationStats> page = new PageImpl<>(paginatedStats, PageRequest.of(currentPage, pageSize), allStats.size());
+
+        return page;
     }
 }
