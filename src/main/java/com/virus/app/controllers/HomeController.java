@@ -11,6 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -50,6 +52,16 @@ public class HomeController {
         int totalNewCases = allStats.stream().mapToInt(stat -> stat.getDiffFromPrevDay()).sum();
         model.addAttribute("totalCasesReported", totalCasesReported);
         model.addAttribute("totalNewCases", totalNewCases);
+
+        List<LocationStats> chartData = new ArrayList<>(allStats);
+
+        chartData.sort(Comparator.comparing(o -> ((LocationStats) o).getLatestTotalCases()).reversed());
+        List<String> barChartLabels = chartData.stream().limit(10).map(o -> o.getCountry()).collect(Collectors.toList());
+        List<Integer> barChartData = chartData.stream().limit(10).map(o -> o.getLatestTotalCases()).collect(Collectors.toList());
+        barChartLabels.add(chartData.stream().filter(p -> p.getCountry().equalsIgnoreCase("india")).findFirst().orElse(new LocationStats()).getCountry());
+        barChartData.add(chartData.stream().filter(p -> p.getCountry().equalsIgnoreCase("india")).findFirst().orElse(new LocationStats()).getLatestTotalCases());
+        model.addAttribute("barChartLabels", barChartLabels);
+        model.addAttribute("barChartData", barChartData);
 
         return "home";
     }

@@ -4,6 +4,7 @@
     <title>Coronavirus Tracker</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 </head>
 
 <style>
@@ -12,7 +13,7 @@
     }
 </style>
 
-<body>
+<body onload="plotBarChart()">
 
 <div class="container">
 
@@ -28,6 +29,8 @@
         <span class="display-4" th:text="${totalNewCases}"></span>
         <span class="lead">New cases reported since previous day</span>
     </div>
+
+    <canvas id="bar-chart" width="800" height="450"></canvas>
 
     <table class="table table-hover">
         <thead class="thead-light">
@@ -54,7 +57,7 @@
         <ul class="pagination justify-content-center font-weight-medium">
             <li class="page-item" th:classappend="${paginatedResp.number == 0} ? 'disabled'">
                 <a class="page-link svg-icon"
-                   th:href="@{/(page=${paginatedResp.number < 2 ? 1 : paginatedResp.number - 2})}"
+                   th:href="@{/(page=${paginatedResp.number < 2 ? paginatedResp.number - 1 : paginatedResp.number - 2})}"
                    aria-label="Previous" title="Previous Page" data-toggle="tooltip">
                     <span aria-hidden="true" data-feather="chevrons-left" width="20" height="20">&laquo;</span>
                 </a>
@@ -64,9 +67,9 @@
                 <a class="page-link" th:href="@{/(page=${i - 1})}" th:text="${i}"
                    th:title="${'Page '+ i}" rel="tooltip"></a>
             </li>
-            <li class="page-item" th:classappend="${paginatedResp.number + 1 == paginatedResp.totalPages} ? 'disabled'">
+            <li class="page-item" th:classappend="${paginatedResp.number == paginatedResp.totalPages - 1} ? 'disabled'">
                 <a class="page-link svg-icon"
-                   th:href="@{/(page=${paginatedResp.number + 2})}"
+                   th:href="@{/(page=${paginatedResp.totalPages - paginatedResp.number <= 2 ? paginatedResp.number + 1 : paginatedResp.number + 2})}"
                    aria-label="Next" title="Next Page" rel="tooltip">
                     <span aria-hidden="true" data-feather="chevrons-right" width="20" height="20">&raquo;</span>
                 </a>
@@ -77,4 +80,31 @@
 </div>
 
 </body>
+
+<script th:inline="javascript">
+    function plotBarChart() {
+        return new Chart(document.getElementById("bar-chart"), {
+            type: 'bar',
+            data: {
+                labels: [[${barChartLabels}]],
+                datasets: [
+                    {
+                        label: "People",
+                        backgroundColor: ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850", "#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850", "#3e95cd"],
+                        data: [[${barChartData}]]
+                    }
+                ]
+            },
+            options: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Confirmed Cases of Covid 19'
+                }
+            }
+        });
+    }
+
+</script>
+
 </html>

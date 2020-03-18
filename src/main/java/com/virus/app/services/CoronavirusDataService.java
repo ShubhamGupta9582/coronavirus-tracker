@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -59,6 +60,7 @@ public class CoronavirusDataService {
                         .setDiffFromPrevDay(latestCases - prevDayCases);
                 newStats.add(locationStat);
             }
+            newStats.sort(Comparator.comparing(o -> o.getCountry()));
             this.allStats = newStats;
         } catch (Exception e) {
             e.printStackTrace();
