@@ -2,7 +2,8 @@ package com.virus.app.controllers;
 
 
 import com.virus.app.models.LocationStats;
-import com.virus.app.services.CoronavirusDataService;
+import com.virus.app.scheduler.ScheduledTask;
+import com.virus.app.services.HomeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -11,8 +12,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -21,11 +20,14 @@ import java.util.stream.IntStream;
 public class HomeController {
 
     @Autowired
-    private CoronavirusDataService coronavirusDataService;
+    private ScheduledTask scheduledTask;
+
+    @Autowired
+    private HomeService homeService;
 
     @GetMapping(value = "/all")  // Not in use
     public String home(Model model) {
-        List<LocationStats> allStats = coronavirusDataService.getAllStats();
+        List<LocationStats> allStats = scheduledTask.getAllStats();
         int totalCasesReported = allStats.stream().mapToInt(stat -> stat.getLatestTotalCases()).sum();
         int totalNewCases = allStats.stream().mapToInt(stat -> stat.getDiffFromPrevDay()).sum();
         model.addAttribute("locationStats", allStats);
@@ -38,7 +40,7 @@ public class HomeController {
     @GetMapping(value = "/")
     public String getPaginatedData(Model model, @RequestParam(name = "page", defaultValue = "0") int page,
                                    @RequestParam(name = "size", defaultValue = "10") int size) {
-        Page<LocationStats> paginatedResp = coronavirusDataService.getPaginatedData(PageRequest.of(page, size));
+        Page<LocationStats> paginatedResp = homeService.getPaginatedData(PageRequest.of(page, size));
         model.addAttribute("paginatedResp", paginatedResp);
 
         int totalPages = paginatedResp.getTotalPages();
@@ -47,21 +49,14 @@ public class HomeController {
             model.addAttribute("pageNumbers", pageNumbers);
         }
 
-        List<LocationStats> allStats = coronavirusDataService.getAllStats();
+        List<LocationStats> allStats = scheduledTask.getAllStats();
         int totalCasesReported = allStats.stream().mapToInt(stat -> stat.getLatestTotalCases()).sum();
         int totalNewCases = allStats.stream().mapToInt(stat -> stat.getDiffFromPrevDay()).sum();
         model.addAttribute("totalCasesReported", totalCasesReported);
         model.addAttribute("totalNewCases", totalNewCases);
 
-        List<LocationStats> chartData = new ArrayList<>(allStats);
-
-        chartData.sort(Comparator.comparing(o -> ((LocationStats) o).getLatestTotalCases()).reversed());
-        List<String> barChartLabels = chartData.stream().limit(10).map(o -> o.getCountry()).collect(Collectors.toList());
-        List<Integer> barChartData = chartData.stream().limit(10).map(o -> o.getLatestTotalCases()).collect(Collectors.toList());
-        barChartLabels.add(chartData.stream().filter(p -> p.getCountry().equalsIgnoreCase("india")).findFirst().orElse(new LocationStats()).getCountry());
-        barChartData.add(chartData.stream().filter(p -> p.getCountry().equalsIgnoreCase("india")).findFirst().orElse(new LocationStats()).getLatestTotalCases());
-        model.addAttribute("barChartLabels", barChartLabels);
-        model.addAttribute("barChartData", barChartData);
+        model.addAttribute("barChart", homeService.getBarChartData());
+        model.addAttribute("lineChart", homeService.getLineChartData());
 
         return "home";
     }
