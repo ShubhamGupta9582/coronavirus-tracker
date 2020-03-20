@@ -42,9 +42,11 @@ public class HomeService {
         List<LocationStats> chartData = scheduledTask.getAllStats();
 
         List<String> barChartLabels = chartData.stream().limit(10).map(o -> o.getCountry()).collect(Collectors.toList());
-        List<Integer> barChartData = chartData.stream().limit(10).map(o -> o.getLatestTotalCases()).collect(Collectors.toList());
         barChartLabels.add("India");
-        barChartData.add(chartData.stream().filter(p -> p.getCountry().equalsIgnoreCase("india")).findFirst().orElse(new LocationStats()).getLatestTotalCases());
+        List<Integer> barChartData = new ArrayList<>();
+        for (String label : barChartLabels) {
+            barChartData.add(chartData.stream().filter(p -> p.getCountry().equalsIgnoreCase(label)).mapToInt(o -> o.getLatestTotalCases()).sum());
+        }
 
         HashMap<String, Object> barChartResp = new HashMap<>();
         barChartResp.put("labels", barChartLabels);
