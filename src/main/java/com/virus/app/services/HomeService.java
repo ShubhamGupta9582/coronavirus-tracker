@@ -23,7 +23,8 @@ public class HomeService {
         int currentPage = pageable.getPageNumber();
         int startItem = currentPage * pageSize;
         List<LocationStats> paginatedStats;
-        List<LocationStats> allStats = scheduledTask.getAllStats();
+        List<LocationStats> allStats = new ArrayList<>(scheduledTask.getAllStats());
+        allStats.sort(Comparator.comparing(o -> o.getCountry()));
 
         if (allStats.size() < startItem) {
             paginatedStats = Collections.emptyList();
@@ -38,12 +39,11 @@ public class HomeService {
     }
 
     public HashMap<String, Object> getBarChartData() {
-        List<LocationStats> chartData = new ArrayList<>(scheduledTask.getAllStats());
-        chartData.sort(Comparator.comparing(o -> ((LocationStats) o).getLatestTotalCases()).reversed());
+        List<LocationStats> chartData = scheduledTask.getAllStats();
 
         List<String> barChartLabels = chartData.stream().limit(10).map(o -> o.getCountry()).collect(Collectors.toList());
         List<Integer> barChartData = chartData.stream().limit(10).map(o -> o.getLatestTotalCases()).collect(Collectors.toList());
-        barChartLabels.add(chartData.stream().filter(p -> p.getCountry().equalsIgnoreCase("india")).findFirst().orElse(new LocationStats()).getCountry());
+        barChartLabels.add("India");
         barChartData.add(chartData.stream().filter(p -> p.getCountry().equalsIgnoreCase("india")).findFirst().orElse(new LocationStats()).getLatestTotalCases());
 
         HashMap<String, Object> barChartResp = new HashMap<>();
@@ -53,7 +53,7 @@ public class HomeService {
         return barChartResp;
     }
 
-    public List getLineChartData() {
-        return null;
+    public HashMap<String, Object> getLineChartData() {
+        return scheduledTask.getLineChartData();
     }
 }

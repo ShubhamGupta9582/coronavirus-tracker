@@ -2,23 +2,24 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Coronavirus Tracker</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 </head>
 
 <style>
     .page-link {
-        color:black;
+        color: black;
     }
 </style>
 
-<body onload="plotBarChart()">
+<body onload="plotBarChart(); plotLineChart()">
 
 <div class="container">
 
-    <h1 align="center">Coronavirus Tracker Application</h1>
-    <p align="center">This application lists the current number of cases reported across the globe</p>
+    <!--<h1 align="center">Coronavirus Tracker Application</h1>-->
+    <!--<p align="center">This application lists the current number of cases reported across the globe</p>-->
 
     <div class="jumbotron">
         <span class="display-3" th:text="${totalCasesReported}"></span>
@@ -31,13 +32,17 @@
     </div>
 
     <canvas id="bar-chart"></canvas>
+    <br><br>
+
+    <canvas id="line-chart"></canvas>
+    <br><br>
 
     <table class="table table-hover">
         <thead class="thead-light">
         <tr>
             <th>No.</th>
-            <th>Province/State</th>
             <th>Country/Region</th>
+            <th>Province/State</th>
             <th scope="col">Total Cases Reported</th>
             <th>Changes since last Day</th>
         </tr>
@@ -45,8 +50,8 @@
         <tbody>
         <tr th:each="stat, indexInfo : ${paginatedResp}">
             <td th:text="${paginatedResp.number == 0 ? indexInfo.index + 1 : indexInfo.index + 1 + (paginatedResp.size * paginatedResp.number)}"></td>
-            <td th:text="${stat.state}"></td>
             <td th:text="${stat.country}"></td>
+            <td th:text="${stat.state}"></td>
             <td th:text="${stat.latestTotalCases}">0</td>
             <td th:text="${stat.diffFromPrevDay}">0</td>
         </tr>
@@ -96,10 +101,55 @@
                 ]
             },
             options: {
-                legend: { display: false },
+                legend: {display: false},
                 title: {
                     display: true,
-                    text: 'Confirmed Cases of Covid 19'
+                    text: 'Top 10 Most Affected Countries'
+                }
+            }
+        });
+    }
+
+    function plotLineChart() {
+        lineChartData = [[${lineChart.data}]];
+        attr = [[${lineChart.attributes}]];
+        labels = [];
+        datasets = [];
+        borderColors = ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850", "#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850", "#3e95cd"];
+        j = 0;
+        for (i = 0; i < attr.length; i++) {
+            obj = {
+                "data": [],
+                "label": attr[i],
+                "borderColor": borderColors[j],
+                "fill": false
+            };
+            datasets.push(obj);
+            j++;
+        }
+        var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        for (i = 0; i < lineChartData.length; i++) {
+            date = new Date(lineChartData[i].timestamp);
+            lab = days[date.getDay()] + " " + date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getFullYear();
+            labels.push(lab);
+            for (j = 0; j < datasets.length; j++) {
+                var val = lineChartData[i][datasets[j].label];
+                datasets[j].data.push(val)
+            }
+        }
+
+        return new Chart(document.getElementById("line-chart"), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                legend: {display: true, position: 'bottom',
+                labels: {boxWidth: 30}},
+                title: {
+                    display: true,
+                    text: 'History For Top 10 Most Affected Countries'
                 }
             }
         });
