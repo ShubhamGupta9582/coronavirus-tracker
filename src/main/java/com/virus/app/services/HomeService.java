@@ -33,6 +33,13 @@ public class HomeService {
 
     public HashMap<String, Object> getDataForHome(int page, int size) {
         HashMap<String, Object> resp = new HashMap<>();
+        if (page < 0) {
+            page = 0;
+        }
+        if (size < 1) {
+            size = 10;
+        }
+
         Page<LocationStats> paginatedResp = getPaginatedData(PageRequest.of(page, size));
         resp.put("paginatedResp", paginatedResp);
 
