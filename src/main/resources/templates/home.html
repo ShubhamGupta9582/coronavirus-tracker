@@ -18,8 +18,8 @@
 
 <div class="container">
 
-    <!--<h1 align="center">Coronavirus Tracker Application</h1>-->
-    <!--<p align="center">This application lists the current number of cases reported across the globe</p>-->
+    <h1 align="center">Coronavirus Tracker Application</h1>
+    <p align="center">This application lists the current number of cases reported across the globe</p>
 
     <div class="jumbotron">
         <span class="display-3" th:text="${totalCasesReported}"></span>
@@ -130,7 +130,7 @@
         var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         for (i = 0; i < lineChartData.length; i++) {
             date = new Date(lineChartData[i].timestamp);
-            lab = days[date.getDay()] + " " + date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getFullYear();
+            lab = days[date.getDay()] + " " + date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear();
             labels.push(lab);
             for (j = 0; j < datasets.length; j++) {
                 var val = lineChartData[i][datasets[j].label];
@@ -145,8 +145,10 @@
                 datasets: datasets
             },
             options: {
-                legend: {display: true, position: 'bottom',
-                labels: {boxWidth: 30}},
+                legend: {
+                    display: true, position: 'bottom',
+                    labels: {boxWidth: 30}
+                },
                 title: {
                     display: true,
                     text: 'History For Top 10 Most Affected Countries'

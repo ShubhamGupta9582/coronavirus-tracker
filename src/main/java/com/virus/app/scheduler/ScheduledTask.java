@@ -108,17 +108,7 @@ public class ScheduledTask {
         return allStats;
     }
 
-    public HashMap<String, Object> getLineChartData() {
-        List<String> keys = new ArrayList<>();
-        HashMap<String, Object> resp = new HashMap<>();
-        resp.put("data", lineChartData);
-
-        if (Objects.nonNull(lineChartData) && !lineChartData.isEmpty()) {
-            keys = new ArrayList<>(lineChartData.get(0).keySet());
-            keys.remove("timestamp");
-        }
-        resp.put("attributes", keys);
-
-        return resp;
+    public List<HashMap<String, Object>> getLineChartData() {
+        return lineChartData;
     }
 }
