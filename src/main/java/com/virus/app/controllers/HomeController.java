@@ -20,8 +20,8 @@ public class HomeController {
     public String home(Model model) {
         HashMap<String, Object> resp = homeService.home();
         model.addAttribute("locationStats", resp.get("locationStats"));
-        model.addAttribute("totalCasesReported", resp.get("totalCasesReported"));
-        model.addAttribute("totalNewCases", resp.get("totalNewCases"));
+        model.addAttribute("totalConfirmedCases", resp.get("totalConfirmedCases"));
+        model.addAttribute("totalNewConfirmedCases", resp.get("totalNewConfirmedCases"));
 
         return "home";
     }
@@ -32,8 +32,12 @@ public class HomeController {
         HashMap<String, Object> resp = homeService.getDataForHome(page, size);
         model.addAttribute("paginatedResp", resp.get("paginatedResp"));
         model.addAttribute("pageNumbers", resp.get("pageNumbers"));
-        model.addAttribute("totalCasesReported", resp.get("totalCasesReported"));
-        model.addAttribute("totalNewCases", resp.get("totalNewCases"));
+        model.addAttribute("totalConfirmedCases", resp.get("totalConfirmedCases"));
+        model.addAttribute("totalNewConfirmedCases", resp.get("totalNewConfirmedCases"));
+        model.addAttribute("totalDeathCases", resp.get("totalDeathCases"));
+        model.addAttribute("totalNewDeathCases", resp.get("totalNewDeathCases"));
+        model.addAttribute("totalRecoveredCases", resp.get("totalRecoveredCases"));
+        model.addAttribute("totalNewRecoveredCases", resp.get("totalNewRecoveredCases"));
         model.addAttribute("barChart", resp.get("barChart"));
         model.addAttribute("lineChart", resp.get("lineChart"));
 

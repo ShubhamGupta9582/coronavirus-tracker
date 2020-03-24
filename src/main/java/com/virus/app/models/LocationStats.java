@@ -5,8 +5,12 @@ public class LocationStats {
 
     private String state;
     private String country;
-    private int latestTotalCases;
-    private int diffFromPrevDay;
+    private int confirmedCases;
+    private int newConfirmedCases;
+    private int deathCases;
+    private int newDeathCases;
+    private int recoveredCases;
+    private int newRecoveredCases;
 
     public String getState() {
         return state;
@@ -26,21 +30,57 @@ public class LocationStats {
         return this;
     }
 
-    public int getLatestTotalCases() {
-        return latestTotalCases;
+    public int getConfirmedCases() {
+        return confirmedCases;
     }
 
-    public LocationStats setLatestTotalCases(int latestTotalCases) {
-        this.latestTotalCases = latestTotalCases;
+    public LocationStats setConfirmedCases(int confirmedCases) {
+        this.confirmedCases = confirmedCases;
         return this;
     }
 
-    public int getDiffFromPrevDay() {
-        return diffFromPrevDay;
+    public int getNewConfirmedCases() {
+        return newConfirmedCases;
     }
 
-    public LocationStats setDiffFromPrevDay(int diffFromPrevDay) {
-        this.diffFromPrevDay = diffFromPrevDay;
+    public LocationStats setNewConfirmedCases(int newConfirmedCases) {
+        this.newConfirmedCases = newConfirmedCases;
+        return this;
+    }
+
+    public int getDeathCases() {
+        return deathCases;
+    }
+
+    public LocationStats setDeathCases(int deathCases) {
+        this.deathCases = deathCases;
+        return this;
+    }
+
+    public int getNewDeathCases() {
+        return newDeathCases;
+    }
+
+    public LocationStats setNewDeathCases(int newDeathCases) {
+        this.newDeathCases = newDeathCases;
+        return this;
+    }
+
+    public int getRecoveredCases() {
+        return recoveredCases;
+    }
+
+    public LocationStats setRecoveredCases(int recoveredCases) {
+        this.recoveredCases = recoveredCases;
+        return this;
+    }
+
+    public int getNewRecoveredCases() {
+        return newRecoveredCases;
+    }
+
+    public LocationStats setNewRecoveredCases(int newRecoveredCases) {
+        this.newRecoveredCases = newRecoveredCases;
         return this;
     }
 
@@ -49,8 +89,12 @@ public class LocationStats {
         return "LocationStats{" +
                 "state='" + state + '\'' +
                 ", country='" + country + '\'' +
-                ", latestTotalCases=" + latestTotalCases +
-                ", diffFromPrevDay=" + diffFromPrevDay +
+                ", confirmedCases=" + confirmedCases +
+                ", newConfirmedCases=" + newConfirmedCases +
+                ", deathCases=" + deathCases +
+                ", newDeathCases=" + newDeathCases +
+                ", recoveredCases=" + recoveredCases +
+                ", newRecoveredCases=" + newRecoveredCases +
                 '}';
     }
 }

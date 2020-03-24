@@ -22,11 +22,11 @@ public class HomeService {
     public HashMap<String, Object> home() {
         HashMap<String, Object> resp = new HashMap<>();
         List<LocationStats> allStats = scheduledTask.getAllStats();
-        int totalCasesReported = allStats.stream().mapToInt(stat -> stat.getLatestTotalCases()).sum();
-        int totalNewCases = allStats.stream().mapToInt(stat -> stat.getDiffFromPrevDay()).sum();
+        int totalConfirmedCases = allStats.stream().mapToInt(stat -> stat.getConfirmedCases()).sum();
+        int totalNewConfirmedCases = allStats.stream().mapToInt(stat -> stat.getNewConfirmedCases()).sum();
         resp.put("locationStats", allStats);
-        resp.put("totalCasesReported", totalCasesReported);
-        resp.put("totalNewCases", totalNewCases);
+        resp.put("totalConfirmedCases", totalConfirmedCases);
+        resp.put("totalNewConfirmedCases", totalNewConfirmedCases);
 
         return resp;
     }
@@ -50,10 +50,18 @@ public class HomeService {
         }
 
         List<LocationStats> allStats = scheduledTask.getAllStats();
-        int totalCasesReported = allStats.stream().mapToInt(stat -> stat.getLatestTotalCases()).sum();
-        int totalNewCases = allStats.stream().mapToInt(stat -> stat.getDiffFromPrevDay()).sum();
-        resp.put("totalCasesReported", totalCasesReported);
-        resp.put("totalNewCases", totalNewCases);
+        int totalConfirmedCases = allStats.stream().mapToInt(stat -> stat.getConfirmedCases()).sum();
+        int totalNewConfirmedCases = allStats.stream().mapToInt(stat -> stat.getNewConfirmedCases()).sum();
+        int totalDeathCases = allStats.stream().mapToInt(stat -> stat.getDeathCases()).sum();
+        int totalNewDeathCases = allStats.stream().mapToInt(stat -> stat.getNewDeathCases()).sum();
+        int totalRecoveredCases = allStats.stream().mapToInt(stat -> stat.getRecoveredCases()).sum();
+        int totalNewRecoveredCases = allStats.stream().mapToInt(stat -> stat.getNewRecoveredCases()).sum();
+        resp.put("totalConfirmedCases", totalConfirmedCases);
+        resp.put("totalNewConfirmedCases", totalNewConfirmedCases);
+        resp.put("totalDeathCases", totalDeathCases);
+        resp.put("totalNewDeathCases", totalNewDeathCases);
+        resp.put("totalRecoveredCases", totalRecoveredCases);
+        resp.put("totalNewRecoveredCases", totalNewRecoveredCases);
 
         resp.put("barChart", getBarChartData());
         resp.put("lineChart", getLineChartData());
@@ -67,7 +75,6 @@ public class HomeService {
         int startItem = currentPage * pageSize;
         List<LocationStats> paginatedStats;
         List<LocationStats> allStats = new ArrayList<>(scheduledTask.getAllStats());
-        allStats.sort(Comparator.comparing(o -> o.getCountry()));
 
         if (allStats.size() < startItem) {
             paginatedStats = Collections.emptyList();
@@ -83,14 +90,12 @@ public class HomeService {
 
     public HashMap<String, Object> getBarChartData() {
         List<LocationStats> chartData = scheduledTask.getAllStats();
-
         List<String> barChartLabels = chartData.stream().limit(10).map(o -> o.getCountry()).collect(Collectors.toList());
         barChartLabels.add("India");
         List<Integer> barChartData = new ArrayList<>();
         for (String label : barChartLabels) {
-            barChartData.add(chartData.stream().filter(p -> p.getCountry().equalsIgnoreCase(label)).mapToInt(o -> o.getLatestTotalCases()).sum());
+            barChartData.add(chartData.stream().filter(p -> p.getCountry().equalsIgnoreCase(label)).mapToInt(o -> o.getConfirmedCases()).sum());
         }
-
         HashMap<String, Object> resp = new HashMap<>();
         resp.put("labels", barChartLabels);
         resp.put("data", barChartData);

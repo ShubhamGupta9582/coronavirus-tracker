@@ -12,6 +12,9 @@
     .page-link {
         color: black;
     }
+    h4, p {
+        display: inline;
+    }
 </style>
 
 <body onload="plotBarChart(); plotLineChart()">
@@ -19,16 +22,30 @@
 <div class="container">
 
     <h1 align="center">Coronavirus Tracker Application</h1>
-    <p align="center">This application lists the current number of cases reported across the globe</p>
+    <h5 align="center">This application lists the current number of cases reported across the globe</h5>
 
-    <div class="jumbotron">
-        <span class="display-3" th:text="${totalCasesReported}"></span>
-        <span class="lead">Total cases reported as of today</span>
+    <div class="alert alert-info" role="alert">
+        <h4 class="alert-heading"  th:text="${totalConfirmedCases}"></h4>
+        <p>Total cases reported as of today</p>
+        <hr>
+        <h4 class="alert-heading"  th:text="${totalNewConfirmedCases}"></h4>
+        <p>New cases reported since previous day</p>
+    </div>
 
-        <hr class="my-4">
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading"  th:text="${totalDeathCases}"></h4>
+        <p>Total Deaths</p>
+        <hr>
+        <h4 class="alert-heading"  th:text="${totalNewDeathCases}"></h4>
+        <p>Total New Deaths</p>
+    </div>
 
-        <span class="display-4" th:text="${totalNewCases}"></span>
-        <span class="lead">New cases reported since previous day</span>
+    <div class="alert alert-success" role="alert">
+        <h4 class="alert-heading"  th:text="${totalRecoveredCases}"></h4>
+        <p>Total Recovered</p>
+        <hr>
+        <h4 class="alert-heading"  th:text="${totalNewRecoveredCases}"></h4>
+        <p>Total New Recovered</p>
     </div>
 
     <canvas id="bar-chart"></canvas>
@@ -43,8 +60,12 @@
             <th>No.</th>
             <th>Country/Region</th>
             <th>Province/State</th>
-            <th scope="col">Total Cases Reported</th>
-            <th>Changes since last Day</th>
+            <th>Total Cases</th>
+            <th>New Cases</th>
+            <th>Total Deaths</th>
+            <th>New Deaths</th>
+            <th>Total Recovered</th>
+            <th>New Recovered</th>
         </tr>
         </thead>
         <tbody>
@@ -52,8 +73,12 @@
             <td th:text="${paginatedResp.number == 0 ? indexInfo.index + 1 : indexInfo.index + 1 + (paginatedResp.size * paginatedResp.number)}"></td>
             <td th:text="${stat.country}"></td>
             <td th:text="${stat.state}"></td>
-            <td th:text="${stat.latestTotalCases}">0</td>
-            <td th:text="${stat.diffFromPrevDay}">0</td>
+            <td th:text="${stat.confirmedCases}">0</td>
+            <td th:text="${stat.newConfirmedCases}">0</td>
+            <td th:text="${stat.deathCases}">0</td>
+            <td th:text="${stat.newDeathCases}">0</td>
+            <td th:text="${stat.recoveredCases}">0</td>
+            <td th:text="${stat.newRecoveredCases}">0</td>
         </tr>
         </tbody>
     </table>
