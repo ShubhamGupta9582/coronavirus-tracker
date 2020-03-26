@@ -39,7 +39,7 @@ public class ScheduledTask {
             headers = new ArrayList<>(records.get(0).toMap().keySet());
         }
         headers.forEach(item -> {
-            if (item.matches("([0-9]{1,2})/([0-9]{1,2})/([0-9]{2})")) {
+            if (item.matches("([0-9]{1,2})/([0-9]{1,2})/([0-9]{2,4})")) {
                 Long timestamp = 0L;
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
                 try {
@@ -59,24 +59,47 @@ public class ScheduledTask {
         csvBodyReader = new StringReader(resp);
         List<CSVRecord> recoveredRecords = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(csvBodyReader).getRecords();
         for (int i = 0; i < records.size(); i++) {
-            CSVRecord record = records.get(i);
-            CSVRecord deathRecord = deathRecords.get(i);
-            CSVRecord recoveredRecord = recoveredRecords.get(i);
             LocationStats locationStat = new LocationStats();
-            int confirmedCases = record.get(record.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(record.get(record.size() - 1));
-            int prevDayConfirmedCases = record.get(record.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(record.get(record.size() - 2));
-            int deathCases = deathRecord.get(deathRecord.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(deathRecord.get(deathRecord.size() - 1));
-            int prevDayDeathCases = deathRecord.get(deathRecord.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(deathRecord.get(deathRecord.size() - 2));
-            int recoveredCases = recoveredRecord.get(recoveredRecord.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(recoveredRecord.get(recoveredRecord.size() - 1));
-            int prevDayRecoveredCases = recoveredRecord.get(recoveredRecord.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(recoveredRecord.get(recoveredRecord.size() - 2));
-            locationStat.setState(record.get("Province/State"))
-                    .setCountry(record.get("Country/Region"))
-                    .setConfirmedCases(confirmedCases)
-                    .setNewConfirmedCases(confirmedCases - prevDayConfirmedCases)
-                    .setDeathCases(deathCases)
-                    .setNewDeathCases(deathCases - prevDayDeathCases)
-                    .setRecoveredCases(recoveredCases)
-                    .setNewRecoveredCases(recoveredCases - prevDayRecoveredCases);
+            CSVRecord record = null;
+            CSVRecord deathRecord = null;
+            CSVRecord recoveredRecord = null;
+            int confirmedCases, prevDayConfirmedCases, deathCases, prevDayDeathCases, recoveredCases, prevDayRecoveredCases;
+
+            try {
+                record = records.get(i);
+            } catch (IndexOutOfBoundsException e) {
+                e.printStackTrace();
+            }
+            if (Objects.nonNull(record)) {
+                confirmedCases = record.get(record.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(record.get(record.size() - 1));
+                prevDayConfirmedCases = record.get(record.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(record.get(record.size() - 2));
+                locationStat.setState(record.get("Province/State"))
+                        .setCountry(record.get("Country/Region"))
+                        .setConfirmedCases(confirmedCases)
+                        .setNewConfirmedCases(confirmedCases - prevDayConfirmedCases);
+            }
+            try {
+                deathRecord = deathRecords.get(i);
+            } catch (IndexOutOfBoundsException e) {
+                e.printStackTrace();
+            }
+            if (Objects.nonNull(deathRecord)) {
+                deathCases = deathRecord.get(deathRecord.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(deathRecord.get(deathRecord.size() - 1));
+                prevDayDeathCases = deathRecord.get(deathRecord.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(deathRecord.get(deathRecord.size() - 2));
+                locationStat.setDeathCases(deathCases)
+                        .setNewDeathCases(deathCases - prevDayDeathCases);
+            }
+            try {
+                recoveredRecord = recoveredRecords.get(i);
+            } catch (IndexOutOfBoundsException e) {
+                e.printStackTrace();
+            }
+            if (Objects.nonNull(recoveredRecord)) {
+                recoveredCases = recoveredRecord.get(recoveredRecord.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(recoveredRecord.get(recoveredRecord.size() - 1));
+                prevDayRecoveredCases = recoveredRecord.get(recoveredRecord.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(recoveredRecord.get(recoveredRecord.size() - 2));
+                locationStat.setRecoveredCases(recoveredCases)
+                        .setNewRecoveredCases(recoveredCases - prevDayRecoveredCases);
+            }
             newStats.add(locationStat);
         }
         newStats.sort(Comparator.comparing(o -> ((LocationStats) o).getConfirmedCases()).reversed());
@@ -87,7 +110,7 @@ public class ScheduledTask {
             if (topElevenCountries.contains(record.get("Country/Region").toLowerCase())) {
                 int j = 0;
                 for (int i = 0; i < record.size(); i++) {
-                    if (headers.get(i).matches("([0-9]{1,2})/([0-9]{1,2})/([0-9]{2})")) {
+                    if (headers.get(i).matches("([0-9]{1,2})/([0-9]{1,2})/([0-9]{2,4})")) {
                         if (Objects.nonNull(lineChartData.get(j).get(record.get("Country/Region")))) {
                             Integer val = Integer.parseInt(String.valueOf(lineChartData.get(j).get(record.get("Country/Region"))));
                             val += record.get(i).equals(EMPTY_STRING) ? 0 : Integer.parseInt(record.get(i));
