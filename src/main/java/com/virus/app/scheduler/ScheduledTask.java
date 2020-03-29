@@ -30,11 +30,13 @@ public class ScheduledTask {
     @Scheduled(cron = "0 1 0 1/1 * ?", zone = "Etc/UTC")
     public void fetchVirusData() throws Exception {
         List<LocationStats> newStats = new ArrayList<>();
+        HashMap<String, Object> locationStatsMap = new HashMap<>();
         String pattern = "M/d/yy";
         String resp = httpService.doGet(CONFIRMED_CASES_URL, null, null);
         StringReader csvBodyReader = new StringReader(resp);
         List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(csvBodyReader).getRecords();
         List<String> headers = new ArrayList<>();
+
         if (Objects.nonNull(records) && !records.isEmpty()) {
             headers = new ArrayList<>(records.get(0).toMap().keySet());
         }
@@ -52,56 +54,57 @@ public class ScheduledTask {
                 lineChartData.add(map);
             }
         });
+
         resp = httpService.doGet(DEATH_CASES_URL, null, null);
         csvBodyReader = new StringReader(resp);
         List<CSVRecord> deathRecords = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(csvBodyReader).getRecords();
         resp = httpService.doGet(RECOVERED_CASES_URL, null, null);
         csvBodyReader = new StringReader(resp);
         List<CSVRecord> recoveredRecords = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(csvBodyReader).getRecords();
-        for (int i = 0; i < records.size(); i++) {
-            LocationStats locationStat = new LocationStats();
-            CSVRecord record = null;
-            CSVRecord deathRecord = null;
-            CSVRecord recoveredRecord = null;
-            int confirmedCases, prevDayConfirmedCases, deathCases, prevDayDeathCases, recoveredCases, prevDayRecoveredCases;
 
-            try {
-                record = records.get(i);
-            } catch (IndexOutOfBoundsException e) {
-                e.printStackTrace();
-            }
-            if (Objects.nonNull(record)) {
-                confirmedCases = record.get(record.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(record.get(record.size() - 1));
-                prevDayConfirmedCases = record.get(record.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(record.get(record.size() - 2));
-                locationStat.setState(record.get("Province/State"))
-                        .setCountry(record.get("Country/Region"))
-                        .setConfirmedCases(confirmedCases)
-                        .setNewConfirmedCases(confirmedCases - prevDayConfirmedCases);
-            }
-            try {
-                deathRecord = deathRecords.get(i);
-            } catch (IndexOutOfBoundsException e) {
-                e.printStackTrace();
-            }
-            if (Objects.nonNull(deathRecord)) {
-                deathCases = deathRecord.get(deathRecord.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(deathRecord.get(deathRecord.size() - 1));
-                prevDayDeathCases = deathRecord.get(deathRecord.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(deathRecord.get(deathRecord.size() - 2));
-                locationStat.setDeathCases(deathCases)
-                        .setNewDeathCases(deathCases - prevDayDeathCases);
-            }
-            try {
-                recoveredRecord = recoveredRecords.get(i);
-            } catch (IndexOutOfBoundsException e) {
-                e.printStackTrace();
-            }
-            if (Objects.nonNull(recoveredRecord)) {
-                recoveredCases = recoveredRecord.get(recoveredRecord.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(recoveredRecord.get(recoveredRecord.size() - 1));
-                prevDayRecoveredCases = recoveredRecord.get(recoveredRecord.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(recoveredRecord.get(recoveredRecord.size() - 2));
-                locationStat.setRecoveredCases(recoveredCases)
-                        .setNewRecoveredCases(recoveredCases - prevDayRecoveredCases);
-            }
-            newStats.add(locationStat);
+        for (CSVRecord record : records) {
+            int confirmedCases = record.get(record.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(record.get(record.size() - 1));
+            int prevDayConfirmedCases = record.get(record.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(record.get(record.size() - 2));
+            HashMap<String, Object> stats = new HashMap<>();
+            stats.put("state", record.get("Province/State"));
+            stats.put("country", record.get("Country/Region"));
+            stats.put("confirmedCases", confirmedCases);
+            stats.put("newConfirmedCases", confirmedCases - prevDayConfirmedCases);
+            locationStatsMap.put(record.get("Country/Region").replace(SPACE, EMPTY_STRING) + record.get("Province/State").replace(SPACE, EMPTY_STRING), stats);
         }
+        for (CSVRecord deathRecord : deathRecords) {
+            int deathCases = deathRecord.get(deathRecord.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(deathRecord.get(deathRecord.size() - 1));
+            int prevDayDeathCases = deathRecord.get(deathRecord.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(deathRecord.get(deathRecord.size() - 2));
+            HashMap<String, Object> stats = (HashMap<String, Object>) locationStatsMap.get(deathRecord.get("Country/Region").replace(SPACE, EMPTY_STRING) + deathRecord.get("Province/State").replace(SPACE, EMPTY_STRING));
+            if (Objects.nonNull(stats) && !stats.isEmpty()) {
+                stats.put("deathCases", deathCases);
+                stats.put("newDeathCases", deathCases - prevDayDeathCases);
+                locationStatsMap.put(deathRecord.get("Country/Region").replace(SPACE, EMPTY_STRING) + deathRecord.get("Province/State").replace(SPACE, EMPTY_STRING), stats);
+            }
+        }
+        for (CSVRecord recoveredRecord : recoveredRecords) {
+            int recoveredCases = recoveredRecord.get(recoveredRecord.size() - 1).equals(EMPTY_STRING) ? 0 : Integer.parseInt(recoveredRecord.get(recoveredRecord.size() - 1));
+            int prevDayRecoveredCases = recoveredRecord.get(recoveredRecord.size() - 2).equals(EMPTY_STRING) ? 0 : Integer.parseInt(recoveredRecord.get(recoveredRecord.size() - 2));
+            HashMap<String, Object> stats = (HashMap<String, Object>) locationStatsMap.get(recoveredRecord.get("Country/Region").replace(SPACE, EMPTY_STRING) + recoveredRecord.get("Province/State").replace(SPACE, EMPTY_STRING));
+            if (Objects.nonNull(stats) && !stats.isEmpty()) {
+                stats.put("recoveredCases", recoveredCases);
+                stats.put("newRecoveredCases", recoveredCases - prevDayRecoveredCases);
+                locationStatsMap.put(recoveredRecord.get("Country/Region").replace(SPACE, EMPTY_STRING) + recoveredRecord.get("Province/State").replace(SPACE, EMPTY_STRING), stats);
+            }
+        }
+        locationStatsMap.forEach((k, v) -> {
+            HashMap<String, Object> stats = (HashMap<String, Object>) v;
+            LocationStats locationStats = new LocationStats();
+            locationStats.setState(String.valueOf(stats.get("state")))
+                    .setCountry(String.valueOf(stats.get("country")))
+                    .setConfirmedCases(Integer.parseInt(String.valueOf(stats.get("confirmedCases"))))
+                    .setNewConfirmedCases(Integer.parseInt(String.valueOf(stats.get("newConfirmedCases"))))
+                    .setDeathCases(stats.get("deathCases") == null ? 0 : Integer.parseInt(String.valueOf(stats.get("deathCases"))))
+                    .setNewDeathCases(stats.get("newDeathCases") == null ? 0 : Integer.parseInt(String.valueOf(stats.get("newDeathCases"))))
+                    .setRecoveredCases(stats.get("recoveredCases") == null ? 0 : Integer.parseInt(String.valueOf(stats.get("recoveredCases"))))
+                    .setNewRecoveredCases(stats.get("newRecoveredCases") == null ? 0 : Integer.parseInt(String.valueOf(stats.get("newRecoveredCases"))));
+            newStats.add(locationStats);
+        });
         newStats.sort(Comparator.comparing(o -> ((LocationStats) o).getConfirmedCases()).reversed());
         this.allStats = new ArrayList<>(newStats);
         List<String> topElevenCountries = newStats.stream().limit(10).map(o -> o.getCountry().toLowerCase()).collect(Collectors.toList());
